@@ -1,0 +1,14 @@
+# .NET
+bin/
+obj/
+.vs/
+*.user
+appsettings.Development.json
+
+# Angular / Node
+node_modules/
+dist/
+.angular/
+
+# General
+.env
