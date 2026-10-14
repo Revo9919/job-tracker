@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\JobTracker.Utilities\JobTracker.Utilities.csproj" />
+  </ItemGroup>
+
 </Project>
