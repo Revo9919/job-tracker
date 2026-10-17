@@ -1,12 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using JobTracker.DataAccess.Repositories.Interfaces;
 
 namespace JobTracker.DataAccess.UnitOfWork
 {
-    internal class IUnitOfWork
+    public interface IUnitOfWork : IDisposable
     {
+        ICvProfileRepository CvProfiles { get; }
+        IMatchResultRepository MatchResults { get; }
+        IUserRepository Users { get; }
+
+        // Person B will add IApplicationRepository and IEventRepository here later.
+
+        Task<int> SaveChangesAsync();
     }
 }
