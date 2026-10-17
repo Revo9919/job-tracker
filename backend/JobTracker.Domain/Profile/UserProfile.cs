@@ -1,5 +1,7 @@
 ﻿using System;
 
+namespace JobTracker.Domain;
+
 public sealed class UserProfile : EntityAudit
 {
     public string Email { get; set; } = string.Empty;

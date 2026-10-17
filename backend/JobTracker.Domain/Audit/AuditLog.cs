@@ -1,5 +1,7 @@
 ﻿using System;
 
+namespace JobTracker.Domain;
+
 public sealed class AuditLog : Entity
 {
     public string TableName { get; set; } = string.Empty;

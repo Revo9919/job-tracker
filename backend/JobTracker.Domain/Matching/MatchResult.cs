@@ -1,5 +1,7 @@
 ﻿using System;
 
+namespace JobTracker.Domain;
+
 public sealed class MatchResult : Entity
 {
     public int UserId { get; set; }

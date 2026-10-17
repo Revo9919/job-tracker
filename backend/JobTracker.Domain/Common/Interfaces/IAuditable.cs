@@ -1,5 +1,7 @@
 ﻿using System;
 
+namespace JobTracker.Domain;
+
 public interface IAuditable
 {
     DateTime CreatedAt { get; set; }
