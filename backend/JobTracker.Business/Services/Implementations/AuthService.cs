@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using JobTracker.Business.DTOs.Auth;
 using JobTracker.Business.Services.Interfaces;
+using JobTracker.DataAccess.Repositories.Interfaces;
 using JobTracker.DataAccess.UnitOfWork;
 using JobTracker.Domain;
 
@@ -15,18 +16,20 @@ namespace JobTracker.Business.Services.Implementations
 {
     public class AuthService : IAuthService
     {
+        private readonly IUserRepository _userRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
 
-        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration)
+        public AuthService(IUserRepository userRepository, IUnitOfWork unitOfWork, IConfiguration configuration)
         {
+            _userRepository = userRepository;
             _unitOfWork = unitOfWork;
             _configuration = configuration;
         }
 
         public async Task<AuthResponseDto> SignupAsync(SignupDto dto)
         {
-            var existingUser = await _unitOfWork.Users.GetByEmailAsync(dto.Email);
+            var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
             if (existingUser != null)
             {
                 throw new InvalidOperationException("Email is already in use.");
@@ -40,16 +43,16 @@ namespace JobTracker.Business.Services.Implementations
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _unitOfWork.Users.AddAsync(user);
-            await _unitOfWork.SaveChangesAsync();
+            await _userRepository.AddAsync(user);
+            await _unitOfWork.CompleteAsync();
 
             var token = GenerateJwtToken(user);
             var refreshToken = GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-            _unitOfWork.Users.Update(user);
-            await _unitOfWork.SaveChangesAsync();
+            _userRepository.Update(user);
+            await _unitOfWork.CompleteAsync();
 
             var response = new AuthResponseDto
             {
@@ -64,7 +67,7 @@ namespace JobTracker.Business.Services.Implementations
 
         public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
         {
-            var user = await _unitOfWork.Users.GetByEmailAsync(dto.Email);
+            var user = await _userRepository.GetByEmailAsync(dto.Email);
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             {
                 throw new UnauthorizedAccessException("Invalid credentials.");
@@ -80,8 +83,8 @@ namespace JobTracker.Business.Services.Implementations
 
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-            _unitOfWork.Users.Update(user);
-            await _unitOfWork.SaveChangesAsync();
+            _userRepository.Update(user);
+            await _unitOfWork.CompleteAsync();
 
             var response = new AuthResponseDto
             {

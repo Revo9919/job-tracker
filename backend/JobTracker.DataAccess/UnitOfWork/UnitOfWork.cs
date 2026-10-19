@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
-using JobTracker.DataAccess.Repositories.Interfaces;
-using JobTracker.DataAccess.Repositories.Implementations;
+using JobTracker.DataAccess.Context;
 
 namespace JobTracker.DataAccess.UnitOfWork
 {
@@ -8,19 +7,12 @@ namespace JobTracker.DataAccess.UnitOfWork
     {
         private readonly JobTrackerDbContext _context;
 
-        public ICvProfileRepository CvProfiles { get; }
-        public IMatchResultRepository MatchResults { get; }
-        public IUserRepository Users { get; }
-
         public UnitOfWork(JobTrackerDbContext context)
         {
             _context = context;
-            CvProfiles = new CvProfileRepository(_context);
-            MatchResults = new MatchResultRepository(_context);
-            Users = new UserRepository(_context);
         }
 
-        public async Task<int> SaveChangesAsync()
+        public async Task<int> CompleteAsync()
         {
             return await _context.SaveChangesAsync();
         }

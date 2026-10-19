@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using JobTracker.DataAccess.Repositories.Interfaces;
+using JobTracker.DataAccess.Context;
 
 namespace JobTracker.DataAccess.Repositories.Implementations
 {

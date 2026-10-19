@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using JobTracker.Business.DTOs.Profile;
 using JobTracker.Business.Services.Interfaces;
+using JobTracker.DataAccess.Repositories.Interfaces;
 using JobTracker.DataAccess.UnitOfWork;
 using JobTracker.Domain;
 
@@ -9,16 +10,18 @@ namespace JobTracker.Business.Services.Implementations
 {
     public class CvProfileService : ICvProfileService
     {
+        private readonly ICvProfileRepository _cvProfileRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public CvProfileService(IUnitOfWork unitOfWork)
+        public CvProfileService(ICvProfileRepository cvProfileRepository, IUnitOfWork unitOfWork)
         {
+            _cvProfileRepository = cvProfileRepository;
             _unitOfWork = unitOfWork;
         }
 
         public async Task<CvProfileDto?> GetProfileAsync(int userId)
         {
-            var profile = await _unitOfWork.CvProfiles.GetByUserIdAsync(userId);
+            var profile = await _cvProfileRepository.GetByUserIdAsync(userId);
             if (profile == null)
             {
                 return null;
@@ -39,7 +42,7 @@ namespace JobTracker.Business.Services.Implementations
 
         public async Task<CvProfileDto> UpsertProfileAsync(int userId, UpdateCvProfileDto dto)
         {
-            var profile = await _unitOfWork.CvProfiles.GetByUserIdAsync(userId);
+            var profile = await _cvProfileRepository.GetByUserIdAsync(userId);
 
             if (profile == null)
             {
@@ -53,7 +56,7 @@ namespace JobTracker.Business.Services.Implementations
                     EducationText = dto.EducationText,
                     UpdatedAt = DateTime.UtcNow
                 };
-                await _unitOfWork.CvProfiles.AddAsync(profile);
+                await _cvProfileRepository.AddAsync(profile);
             }
             else
             {
@@ -64,10 +67,10 @@ namespace JobTracker.Business.Services.Implementations
                 profile.EducationText = dto.EducationText;
                 profile.UpdatedAt = DateTime.UtcNow;
 
-                _unitOfWork.CvProfiles.Update(profile);
+                _cvProfileRepository.Update(profile);
             }
 
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CompleteAsync();
 
             var resultDto = new CvProfileDto
             {

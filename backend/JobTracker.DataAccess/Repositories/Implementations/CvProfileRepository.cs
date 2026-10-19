@@ -1,4 +1,5 @@
 ﻿using JobTracker.DataAccess.Repositories.Interfaces;
+using JobTracker.DataAccess.Context;
 using JobTracker.Domain;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using JobTracker.Business.DTOs.Matching;
 using JobTracker.Business.Matching.Providers;
 using JobTracker.Business.Services.Interfaces;
+using JobTracker.DataAccess.Repositories.Interfaces;
 using JobTracker.DataAccess.UnitOfWork;
 using JobTracker.Domain;
 
@@ -11,18 +12,26 @@ namespace JobTracker.Business.Services.Implementations
 {
     public class MatchingService : IMatchingService
     {
+        private readonly ICvProfileRepository _cvProfileRepository;
+        private readonly IMatchResultRepository _matchResultRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILlmProvider _llmProvider;
 
-        public MatchingService(IUnitOfWork unitOfWork, ILlmProvider llmProvider)
+        public MatchingService(
+            ICvProfileRepository cvProfileRepository,
+            IMatchResultRepository matchResultRepository,
+            IUnitOfWork unitOfWork,
+            ILlmProvider llmProvider)
         {
+            _cvProfileRepository = cvProfileRepository;
+            _matchResultRepository = matchResultRepository;
             _unitOfWork = unitOfWork;
             _llmProvider = llmProvider;
         }
 
         public async Task<MatchResultDto> MatchAsync(int userId, MatchRequestDto request)
         {
-            var cvProfile = await _unitOfWork.CvProfiles.GetByUserIdAsync(userId);
+            var cvProfile = await _cvProfileRepository.GetByUserIdAsync(userId);
             if (cvProfile == null)
             {
                 throw new InvalidOperationException("CV Profile not found for this user.");
@@ -47,8 +56,8 @@ namespace JobTracker.Business.Services.Implementations
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _unitOfWork.MatchResults.AddAsync(matchResult);
-            await _unitOfWork.SaveChangesAsync();
+            await _matchResultRepository.AddAsync(matchResult);
+            await _unitOfWork.CompleteAsync();
 
             return matchResultDto;
         }
