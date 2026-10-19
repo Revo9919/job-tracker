@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿namespace JobTracker.Api.Common;
+
+using System.Collections.Generic;
 
 public class PagedResult<T>
 {

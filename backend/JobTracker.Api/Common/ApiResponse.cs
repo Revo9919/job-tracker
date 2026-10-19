@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 
+namespace JobTracker.Api.Common;
+
 public class ApiResponse<T>
 {
     public bool Success { get; set; }
