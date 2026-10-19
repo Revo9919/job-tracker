@@ -12,9 +12,13 @@ using JobTracker.DataAccess.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Reflection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 builder.Services.AddDbContext<JobTrackerDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -24,7 +28,8 @@ builder.Services.AddScoped<ICvProfileRepository, CvProfileRepository>();
 builder.Services.AddScoped<IMatchResultRepository, MatchResultRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-builder.Services.AddScoped<ILlmProvider, MockLlmProvider>();
+builder.Services.AddScoped<ILlmProvider, GeminiLlmProvider>();
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICvProfileService, CvProfileService>();
 builder.Services.AddScoped<IMatchingService, MatchingService>();
@@ -72,5 +77,24 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+
+// Try-Catch to extract the exact LoaderExceptions causing the crash
+try
+{
+    app.MapControllers();
+}
+catch (ReflectionTypeLoadException ex)
+{
+    Console.WriteLine("=== REFLECTION TYPE LOAD EXCEPTION ===");
+    foreach (var loaderEx in ex.LoaderExceptions)
+    {
+        if (loaderEx != null)
+        {
+            Console.WriteLine(loaderEx.Message);
+        }
+    }
+    Console.WriteLine("======================================");
+    throw; // Rethrow to halt startup
+}
+
 app.Run();
