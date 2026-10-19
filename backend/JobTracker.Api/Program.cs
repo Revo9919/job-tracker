@@ -16,6 +16,7 @@ using System;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 // 1. Database Configuration
 builder.Services.AddDbContext<JobTrackerDbContext>(options =>
@@ -28,7 +29,15 @@ builder.Services.AddScoped<IMatchResultRepository, MatchResultRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // 3. Services & LLM Provider
-builder.Services.AddHttpClient<ILlmProvider, GeminiLlmProvider>();
+var matchingProvider = builder.Configuration["Matching:Provider"] ?? "Mock";
+if (string.Equals(matchingProvider, "Gemini", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddScoped<ILlmProvider, GeminiLlmProvider>();
+}
+else
+{
+    builder.Services.AddScoped<ILlmProvider, MockLlmProvider>();
+}
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICvProfileService, CvProfileService>();
 builder.Services.AddScoped<IMatchingService, MatchingService>();
