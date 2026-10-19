@@ -92,6 +92,7 @@ builder.Services.AddAuthentication(options =>
 var app = builder.Build();
 
 // 7. Middleware Pipeline
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())

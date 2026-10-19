@@ -97,6 +97,36 @@ namespace JobTracker.Business.Services.Implementations
             return response;
         }
 
+        public async Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.RefreshToken))
+            {
+                throw new UnauthorizedAccessException("Refresh token is required.");
+            }
+
+            var user = await _userRepository.GetByRefreshTokenAsync(dto.RefreshToken);
+            if (user == null || !user.IsActive || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                throw new UnauthorizedAccessException("Refresh token is invalid or expired.");
+            }
+
+            var token = GenerateJwtToken(user);
+            var refreshToken = GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            _userRepository.Update(user);
+            await _unitOfWork.CompleteAsync();
+
+            return new AuthResponseDto
+            {
+                UserId = user.Id,
+                Email = user.Email,
+                Token = token,
+                RefreshToken = refreshToken
+            };
+        }
+
         private string GenerateJwtToken(UserProfile user)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
